@@ -1,2 +1,2 @@
 # tiny6410-learning
-study tiny6410
+学习TINY6410的点滴
