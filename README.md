@@ -11,4 +11,4 @@ README文件后缀名为md。md是markdown的缩写，markdown是一种编辑博
 
 在方括号里可以加入一些 标识性的信息，比如
 
-![ABC]() 
+![ABC](http://jingyan.baidu.com/album/27fa732683ebf546f8271f2e.html?picindex=9) 
