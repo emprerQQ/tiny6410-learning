@@ -1,21 +1,3 @@
-
-从linux内核2.6的某个版本之后，devfs不复存在，udev成为devfs的替代。提醒一点，udev是应用层的，不要试图在内核的配置选项里找到它;加入对udev的支持很简单，以作者所写的一个字符设备驱动为例，在驱动初始化的代码里调用class_create为该设备创建一个class，再为每个设备调用device_create创建对应的设备。大致用法如下：
-
-struct class *myclass ；
-        class_create(THIS_MODULE, “my_device_driver”);
-        device_create(myclass, NULL, MKDEV(major_num, minor_num), NULL, “my_device”);
-
-这样的module被加载时，udev daemon就会自动在/dev下创建my_device设备文件。
-
-我们在刚开始写Linux设备驱动程序的时候，很多时候都是利用mknod命令手动创建设备节点，实际上Linux内核为我们提供了一组函数，可以用来在模块加载的时候自动在 /dev目录下创建相应设备节点，并在卸载模块时删除该节点，当然前提条件是用户空间移植了udev。
-
-内核中定义了struct class结构体，顾名思义，一个struct class结构体类型变量对应一个类，内核同时提供了class_create(…)函数，可以用它来创建一个类，这个类存放于sysfs下面，一旦创建好了这个类，再调用device_create(…)函数来在/dev目录下创建相应的设备节点。这样，加载模块的时候，用户空间中的udev会自动响应 device_create(…)函数，去/sysfs下寻找对应的类从而创建设备节点。
-
-注意，在2.6较早的内核版本中，device_create(…)函数名称不同，是class_device_create(…)，所以在新的内核中编译以前的模块程序有时会报错，就是因为函数名称 不同，而且里面的参数设置也有一些变化。
-
-struct class和device_create(…) 以及device_create(…)都定义在/include/linux/device.h中，使用的时候一定要包含这个头文件，否则编译器会报错。
-rg）讲师。
-
 从linux内核2.6的某个版本之后，devfs不复存在，udev成为devfs的替代。提醒一点，udev是应用层的，不要试图在内核的配置选项里找到它;加入对udev的支持很简单，以作者所写的一个字符设备驱动为例，在驱动初始化的代码里调用class_create为该设备创建一个class，再为每个设备调用device_create创建对应的设备。大致用法如下：
 
 struct class *myclass ；
