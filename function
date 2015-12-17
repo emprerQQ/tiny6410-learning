@@ -1,0 +1,93 @@
+ERR_PTR,PTR_ERR还有IS_ERR函数详解
+
+    内核中的函数常常返回指针，问题是如果出错，也希望能够通过返回的指针体现出来。 总体来说，如果内核返回一个指针，那么有三种情况：合法指针，NULL指针和非法指针。
+
+
+1）合法指针：内核返回的指针一般是指向页面的边界(4K边界)，即 ptr & 0xfff == 0
+
+
+2）非法指针：这样ptr的值不可能落在（0xfffff000，0xffffffff）之间(这个区间是内核高端内存所在的区间，关于用户空间和内核空间，可以看考这里。)， 而一般内核的出错代码也是一个小负数，在-1000到0之间，转变成unsigned long，正好在（0xfffff000，0xffffffff)之间。因此可以用 
+
+(unsigned long)ptr > (unsigned long)-1000L
+
+-1000L=0xfffff000
+
+3)利用非法指针，进行错误分类：
+
+    来判断内核函数的返回值是一个有效的指针，还是一个出错代码。 
+
+    MAX_ERRNO了吗?一个宏,定义为4095,MAX_ERRNO就是最大错误号,Linux内核中,出错有多种可能.
+
+ 
+
+关于Linux内核中的错误,我们看一下include/asm-generic/errno-base.h文件:
+
+#define EPERM 1 /* Operation not permitted */
+
+#define ENOENT 2 /* No such file or directory */
+
+#define ESRCH 3 /* No such process */
+
+#define EINTR 4 /* Interrupted system call */
+
+#define EIO 5 /* I/O error */
+
+#define ENXIO 6 /* No such device or address */
+
+#define E2BIG 7 /* Argument list too long */
+
+#define ENOEXEC 8 /* Exec format error */
+
+#define EBADF 9 /* Bad file number */
+
+#define ECHILD 10 /* No child processes */
+
+#define EAGAIN 11 /* Try again */
+
+#define ENOMEM 12 /* Out of memory */
+
+#define EACCES 13 /* Permission denied */
+
+#define EFAULT 14 /* Bad address */
+
+#define ENOTBLK 15 /* Block device required */
+
+#define EBUSY 16 /* Device or resource busy */
+
+#define EEXIST 17 /* File exists */
+
+#define EXDEV 18 /* Cross-device link */
+
+#define ENODEV 19 /* No such device */
+
+#define ENOTDIR 20 /* Not a directory */
+
+#define EISDIR 21 /* Is a directory */
+
+#define EINVAL 22 /* Invalid argument */
+
+#define ENFILE 23 /* File table overflow */
+
+#define EMFILE 24 /* Too many open files */
+
+#define ENOTTY 25 /* Not a typewriter */
+
+#define ETXTBSY 26 /* Text file busy */
+
+#define EFBIG 27 /* File too large */
+
+#define ENOSPC 28 /* No space left on device */
+
+#define ESPIPE 29 /* Illegal seek */
+
+#define EROFS 30 /* Read-only file system */
+
+#define EMLINK 31 /* Too many links */
+
+#define EPIPE 32 /* Broken pipe */
+
+#define EDOM 33 /* Math argument out of domain of func */
+
+#define ERANGE 34 /* Math result not representable */
+
+最常见的几个是-EBUSY,-EINVAL,-ENODEV,-EPIPE,-EAGAIN,-ENOMEM,我相信不用说你写过代码调试过代码,只要你使用过Linux就有可能见过这几个错误,因为它们确实经常出现.这些是每个体系结构里都有的,另外各个体系结构也都定义了自己的一些错误代码.这些东西当然也都是宏,实际上对应的是一些数字,这个数字就叫做错误号.而对于Linux内核来说,不管任何体系结构,最多最多,错误号不会超过4095.而4095又正好是比4k小1,即4096减1.而我们知道一个page可能是4k,也可能是更多,比如8k,但至少它也是4k,所以留出一个page出来就可以让我们把内核空间的指针来记录错误了.什么意思呢?比如我们这里的IS_ERR(),它就是判断kthread_run()返回的指针是否有错,如果指针并不是指向最后一个page,那么没有问题,申请成功了,如果指针指向了最后一个page,那么说明实际上这不是一个有效的指针,这个指针里保存的实际上是一种错误代码.而通常很常用的方法就是先用IS_ERR()来判断是否是错误,然后如果是,那么就调用PTR_ERR()来返回这个错误代码.只不过咱们这里,没有调用PTR_ERR()而已,因为起决定作用的还是IS_ERR(),而PTR_ERR()只是返回错误代码,也就是提供一个信息给调用者,如果你只需要知道是否出错,而不在乎因为什么而出错,那你当然不用调用PTR_ERR()了

@@ -43,9 +43,9 @@ static int s3c6410_leds_open(struct inode *nd,struct file *flip)
 
 	if(leds_status == 0)
 	{
-		tmp = ioread32(S3C6410_GPKCON);
+		tmp = ioread32(S3C64XX_GPKCON);
 		tmp &= ~(0xFFFF0000);
-		tmp |=(); //看一下芯片手册
+		tmp |=(0x11110000); //看一下芯片手册
 		iowrite32(tmp,S3C64XX_GPKDAT);
 		leds_status = 1;
 	}
@@ -67,30 +67,34 @@ static int s3c6410_leds_close(struct inode *nd,struct file *filp)
 static long s3c6410_leds_ioctl(struct file*filp,unsigned int cmd,unsigned long arg)
 {
 	switch(cmd){
-		unsigned tmp;
-		case 0;
-		case 1;
+		unsigned tmp ;
+		case 0 :;
+		case 1 :
 		{
 			if(arg>4)
 			{
-				return -EINVAL
+				return -EINVAL;
 			}
 			else if(arg == 0)
 			{
 				tmp = ioread32(S3C64XX_GPKDAT);
 				if(cmd == 1)
+				{
 					tmp &= ~(0xF<<4);
-				else if(cmd == 0)					tmp |= (0xF<<4);
+				
+					tmp |= (0xF<<4);
+				}
+				else if(cmd == 0)
 				iowrite32(tmp,S3C64XX_GPKDAT);
 			
 			}
-			else 
-			{
-			tmp = ioread32(S3C64XX_GPKDAT);
-			tmp &= ~(1 << (3+arg));
-			tmp |=((!cmd) << (3+arg))
-			iowrite32(tmp, S3C64XX_GPKDAT);	
-			}
+				else 
+				{
+				tmp = ioread32(S3C64XX_GPKDAT);
+				tmp &= ~(1 << (3+arg));
+				tmp |=((!cmd) << (3+arg));
+				iowrite32(tmp, S3C64XX_GPKDAT);	
+				}
 			return 0;
 
 		}
@@ -102,47 +106,11 @@ static long s3c6410_leds_ioctl(struct file*filp,unsigned int cmd,unsigned long a
 }
 
 
-}
 
 
 
-static long s3c6410_leds_ioctl(struct file* filp, unsigned int cmd, unsingned long arg)
-{
-	switch(cmd)
-	{
-		unsigned tmp;
-		case 0;
-		case 1:
-		{
-			if(arg>4)
-			{
-				return -EINVAL;
-			}
-			else if(arg == 0)
-			{
-				tmp = ioread32(S3C64XX_GPKDAT)
-				if(cmd ==1)
-					tmp &= ~(0xF<<4);
-				else if(cmd == 0)
-					tmp |=(0xF<<4);
-				iowrite32(emp, S3C64XX_GPKDATA);
-			}
-			else 
-			{
-				tmp = ioread32(S3C64XX_GPKDAT);
-				tmp &= ～（1 << (3+arg)）;
-				tmp |= ((!cmd) << (3+arg));
-				iowrite32(tmp, S3C64XX_GPKDAT);
-			}
-			return 0;
 
-		}
-		default:
-			return -EINVAL;	
-	}
-		return 0;
 
-}
 /**************************************************
 为了增强程序的可移植性，便有了size_t，它是为了方便系统之间的移植而定义的，不同的系统上，定义size_t可能不一样。
 
@@ -185,7 +153,7 @@ static struct file_operations S3C6410_LEDS_FOPS =
 	.release = s3c6410_leds_close,
 	.read = s3c6410_leds_read,
 	.unlocked_ioctl = s3c6410_leds_ioctl,
-}
+};
 
 static int __init s3c6410_leds_init(void)
 {
@@ -194,7 +162,7 @@ static int __init s3c6410_leds_init(void)
 
 	if(DEVICE_MAJOR)
 	{
-		leds_dev_t MKDEV(DEVICE_MAJOR, 0);
+		leds_dev_t=MKDEV(DEVICE_MAJOR, 0);
 // int register_chrdev_region(dev_t from, unsigned count, const char *name) - register a range of device numbers
 		ret = register_chrdev_region(leds_dev_t,1,DEVICE_NAME);
 		if(ret < 0)
@@ -228,7 +196,7 @@ static int __init s3c6410_leds_init(void)
 		return 0;
 	
 	}
-
+}
 //module exit
 // 执行rmmod命令时就会调用这个函数 
 // static int __exit cleanup_module(void)       //默认>驱动清除函数
@@ -246,6 +214,5 @@ module_exit(s3c6410_leds_exit);
 
 MODULE_VERSION("1");
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("LED DRIVER");
 
 

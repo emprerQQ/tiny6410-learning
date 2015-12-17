@@ -1,0 +1,1 @@
+cmd_/home/mike/ming/tiny6410-learning/drivers/led.ko := arm-linux-ld -EL -r  -T /home/mike/arm6410/linux-kernel/linux-2.6.38/scripts/module-common.lds --build-id  -o /home/mike/ming/tiny6410-learning/drivers/led.ko /home/mike/ming/tiny6410-learning/drivers/led.o /home/mike/ming/tiny6410-learning/drivers/led.mod.o
